@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const axios = require('axios');
 const OpenAI = require('openai');
 require('dotenv').config();
 
@@ -19,178 +20,185 @@ app.use(express.json());
 // Serve frontend static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Prompt template
-const ANALYSIS_PROMPT = ` Please provide a comprehensive fundamental analysis for the following stock(s): {STOCKS}
+// Updated Prompt Template
+const ANALYSIS_PROMPT = `Please provide a comprehensive fundamental analysis for the following stock(s): {STOCKS}
 ## Objective
 Conduct a thorough analysis of the stock, combining qualitative and quantitative approaches to provide a well-rounded investment recommendation.
-
-## Source & Outline of Analysis
-Take financial statements and other data points on the company from Screener.in on the said company!! Adhere STRICTLY to the sample output outline. Can add charts, and visualisations.
 
 ## Instructions
 
 {STOCKS} - Equity Analysis Report
-
-By “Trading Maverick”
+By "Trading Maverick"
 
 ### 1. Company Overview
-- Provide a brief introduction to the company, including its name, sector, and primary business activities.
-- Mention any recent significant events or changes in the company's structure or operations.
-- Investment Recommendation (Quick reference from & based on Step 8 below)
-Recommendation: BUY/SELL/HOLD
-Target Price: ₹x (y% upside/downside)
-Investment Horizon:  months
-
+- Provide a brief introduction to the company
+- Mention any recent significant events
+- Include quick investment recommendation
 
 ### 2. Quantitative Analysis
-Use the provided financial data to analyze the following metrics. For each subtopic, provide:
-The current value and historical data for the past 5 years (where available)
-A clear trend analysis (e.g., improving, declining, stable)
-Analytical commentary on the reasons behind the observed trends
-Key takeaways and their implications for the company's financial health and future prospects
-a) Market Valuation and Price Metrics:
-Market Capitalization
-Current Stock Price
-Price-to-Earnings (P/E) Ratio
-b) Profitability and Returns:
-Return on Equity (ROE)
-Return on Capital Employed (ROCE)
-Net Profit Margin
-Operating Profit Margin
-c) Growth Metrics:
-Revenue Growth Rate (5-year CAGR)
-Earnings Per Share (EPS) Growth Rate (5-year CAGR)
-d) Balance Sheet Strength:
-Debt-to-Equity Ratio
-e) Cash Flow Analysis:
-Cash Flow from Operations
-f) Dividend Analysis:
-Dividend Yield
-Dividend Payout Ratio
-g) Efficiency Ratios:
-Asset Turnover Ratio
-h) Valuation Metrics:
-Compare P/E ratio with industry peers
-For each metric, ensure that you:
-Highlight any significant year-over-year changes
-Discuss how the company's performance compares to industry benchmarks
-Identify any potential red flags or areas of concern
-Explain the implications of these metrics for potential investors
+Analyze these metrics with current values and 5-year trends:
+a) Market Valuation:
+   - Market Cap, P/E Ratio, Stock Price
+b) Profitability:
+   - ROE, ROCE, Margins
+c) Growth:
+   - Revenue Growth, EPS Growth
+d) Balance Sheet:
+   - Debt-to-Equity, Current Ratio
+e) Dividends:
+   - Yield, Payout Ratio
 
 ### 3. Qualitative Analysis
-Evaluate the following aspects:
+Evaluate:
+a) Business Model
+b) Management Quality
+c) Growth Strategy
 
-a) Business Model:
-   - Core products/services
-   - Revenue streams
-   - Competitive advantages
-
-b) Management Quality:
-   - Experience and track record of key executives
-   - Corporate governance practices
-
-c) Growth Strategy:
-   - Expansion plans
-   - Research and development initiatives
-
-### 4. Shareholding Pattern Analysis
-Analyze the company's shareholding pattern, focusing on:
-- Promoter holding and any recent changes
-- Institutional investor (FII and DII) holdings
-- Public shareholding trends
+### 4. Shareholding Pattern
+Analyze promoter, FII, DII holdings
 
 ### 5. Investment Thesis
-Synthesize the qualitative and quantitative analyses to form a coherent investment thesis. This should include:
-- Key drivers for future growth
-- Potential catalysts for stock price movement
-- How the company is positioned to handle industry trends and challenges
+Key growth drivers and catalysts
 
 ### 6. Valuation and Recommendation
-- Provide a fair value estimate for the stock based on various valuation methods.
-- Offer a clear investment recommendation (Strong Buy, Buy, Hold, Sell, Strong Sell) with a detailed rationale.
-- Include a target price and the expected timeframe for achieving it.
+- Fair value estimate
+- BUY/SELL/HOLD recommendation
+- Target price and timeframe
 
 ### 7. Conclusion
-Summarize the key points of your analysis and restate your recommendation.
+Summary and final recommendation
 
-### Output Type
+### Output Requirements
+- Generate professional HTML report
+- Use color-coded trends (green/red)
+- Include data tables
+- Highlight key metrics
+- Add disclaimer`;
 
-Give the output in a HTML version of the equity research report by the author. Design as a professional with the following features:
-Professional Design Elements:
-Clean, corporate color scheme with professional typography
-Branded header with company and report information
-Recommendation box highlighting the BUY recommendation
-Color-coded trends (positive in green, negative in red, neutral in orange)
-Proper spacing and margins for readability
-Well-Structured Content:
-All seven sections from the original report maintained
-Data presented in neatly formatted tables
-Clear hierarchical headings and subheadings
-Highlighted key metrics and recommendations
-Page breaks at logical points for PDF printing
-Enhanced Readability:
-Key points highlighted in bold
-Important figures and recommendations emphasized
-Consistent formatting throughout
-Footer with disclaimer and publication information
+// Enhanced Yahoo Finance Data Fetcher
+async function fetchYahooFinanceData(stockSymbol) {
+  try {
+    const modules = [
+      'assetProfile', 'incomeStatementHistory', 
+      'balanceSheetHistory', 'cashflowStatementHistory',
+      'defaultKeyStatistics', 'financialData',
+      'price', 'summaryDetail', 
+      'institutionOwnership', 'majorHoldersBreakdown'
+    ];
+    
+    const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${stockSymbol}.NS?modules=${modules.join(',')}`;
+    const response = await axios.get(url);
+    const data = response.data.quoteSummary.result[0];
+    
+    // Process financial history
+    const processHistory = (history, field) => {
+      return history?.map(item => ({
+        year: item.endDate?.fmt || 'N/A',
+        value: item[field]?.fmt || 'N/A'
+      })) || [];
+    };
 
+    return {
+      // Company info
+      name: data.assetProfile?.longName || stockSymbol,
+      sector: data.assetProfile?.sector || 'N/A',
+      industry: data.assetProfile?.industry || 'N/A',
+      description: data.assetProfile?.longBusinessSummary || 'N/A',
+      
+      // Price data
+      price: data.price?.regularMarketPrice?.fmt || 'N/A',
+      currency: data.price?.currency || 'INR',
+      marketCap: data.price?.marketCap?.fmt || 'N/A',
+      peRatio: data.summaryDetail?.trailingPE?.fmt || 'N/A',
+      
+      // Profitability
+      roe: data.financialData?.returnOnEquity?.fmt || 'N/A',
+      roa: data.financialData?.returnOnAssets?.fmt || 'N/A',
+      profitMargins: data.financialData?.profitMargins?.fmt || 'N/A',
+      
+      // Growth
+      revenueHistory: processHistory(data.incomeStatementHistory?.incomeStatementHistory, 'totalRevenue'),
+      earningsHistory: processHistory(data.incomeStatementHistory?.incomeStatementHistory, 'netIncome'),
+      
+      // Balance sheet
+      debtToEquity: data.financialData?.debtToEquity?.fmt || 'N/A',
+      currentRatio: data.financialData?.currentRatio?.fmt || 'N/A',
+      
+      // Dividends
+      dividendYield: data.summaryDetail?.dividendYield?.fmt || '0%',
+      payoutRatio: data.summaryDetail?.payoutRatio?.fmt || 'N/A',
+      
+      // Shareholding
+      institutionHolding: data.institutionOwnership?.fmt || 'N/A',
+      insiderHolding: data.majorHoldersBreakdown?.insidersPercentHeld?.fmt || 'N/A',
+      
+      // Additional data
+      beta: data.defaultKeyStatistics?.beta?.fmt || 'N/A',
+      fiftyTwoWeekHigh: data.summaryDetail?.fiftyTwoWeekHigh?.fmt || 'N/A',
+      fiftyTwoWeekLow: data.summaryDetail?.fiftyTwoWeekLow?.fmt || 'N/A'
+    };
 
-## Important Notes
-- Remember that for Indian markets, the financial year starts from April 1st and ends on March 31st. For example, FY24 would be from April 1, 2023, to March 31, 2024.
-- For all Balance Sheet, Income Statement, and Cash flow statement data and metrics, refer to FY24 as the latest available annual period. For market metrics and valuation data, refer to the latest available data from the credible sources noted above.
-- For the P/E Ratio comparison with peers, provide a qualitative analysis rather than specific figures.
-- Provide detailed financial metrics, market share figures, and growth rates to substantiate each point.
-- No need to mention the report generation date.
-- Focus on unique trends, challenges, and innovations that are shaping the specific industry, and how the company's trends align to it.
-- Ensure the analysis leads to practical insights for decision-making, whether it is for investors, market entrants, or industry strategists.
-- Maintain an objective tone throughout the analysis.
-- Use bold formatting for headings and subheadings. Highlight or underline important figures and the final recommendation.
-- Ensure consistency in formatting and presentation.
-- If certain data points are not available, provide a qualitative assessment based on available information.
-- Keep the lookback period as the last 5 fiscal years.
-- In the Quantitative Analysis section, ensure that each subtopic includes a clear trend analysis, commentary, and key takeaways to provide a comprehensive understanding of the company's financial performance and position.
-- Refer to the reference Output below. The structure, framework, style, chronology of the prompt output should be as per the reference, for any stock being analysed.
-
-`;
+  } catch (error) {
+    console.error(`Error fetching data for ${stockSymbol}:`, error.message);
+    return null;
+  }
+}
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Stock Analysis API is running' });
 });
 
-// POST endpoint for stock analysis
+// Analysis endpoint
 app.post('/api/analyze', async (req, res) => {
   try {
     const { stocks } = req.body;
 
-    // Validate input
     if (!stocks || !Array.isArray(stocks) || stocks.length === 0) {
-      return res.status(400).json({
-        error: 'Invalid input',
-        message: 'Please provide an array of stock symbols',
+      return res.status(400).json({ 
+        error: 'Invalid input', 
+        message: 'Please provide an array of stock symbols' 
       });
     }
 
-    // Sanitize stock symbols
-    const cleanedStocks = stocks
-      .map((s) => s.toString().trim().toUpperCase())
-      .filter((s) => s.length > 0);
+    // Process stock symbols
+    const cleanedStocks = stocks.map(s => s.toString().trim().toUpperCase())
+                              .filter(s => s.length > 0);
 
-    if (cleanedStocks.length === 0) {
-      return res.status(400).json({
-        error: 'Invalid input',
-        message: 'No valid stock symbols provided',
-      });
-    }
+    // Fetch data for all stocks
+    const stockDataList = await Promise.all(
+      cleanedStocks.map(fetchYahooFinanceData)
+    );
 
+    // Prepare financial data text
+    const financialDataText = stockDataList.map((stock, index) => {
+      if (!stock) return `Stock: ${cleanedStocks[index]}\nData not available`;
+      
+      return `
+Stock: ${stock.name} (${cleanedStocks[index]})
+Price: ₹${stock.price}
+Market Cap: ${stock.marketCap}
+P/E Ratio: ${stock.peRatio}
+ROE: ${stock.roe}
+Debt-to-Equity: ${stock.debtToEquity}
+Dividend Yield: ${stock.dividendYield}
+
+5-Year Revenue Trend:
+${stock.revenueHistory.map(item => `  ${item.year}: ${item.value}`).join('\n')}
+
+5-Year Earnings Trend:
+${stock.earningsHistory.map(item => `  ${item.year}: ${item.value}`).join('\n')}
+      `;
+    }).join('\n\n');
+
+    // Generate prompt
     const stocksList = cleanedStocks.join(', ');
-    const prompt = ANALYSIS_PROMPT.replace('{STOCKS}', stocksList);
+    const prompt = ANALYSIS_PROMPT.replace(/{STOCKS}/g, stocksList)
+                      .concat(`\n\n## Financial Data\n${financialDataText}`);
 
-    console.log(`Analyzing stocks: ${stocksList}`);
-
-    // Call OpenAI chat completion
+    // Get AI analysis
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o', // Replace with your available model name
+      model: 'gpt-4',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 4000,
       temperature: 0.7,
@@ -198,46 +206,41 @@ app.post('/api/analyze', async (req, res) => {
 
     const analysis = completion.choices[0].message.content;
 
-    // Respond with analysis
-    res.json({
-      success: true,
-      stocks: cleanedStocks,
+    res.json({ 
+      success: true, 
+      stocks: cleanedStocks, 
       analysis,
-      timestamp: new Date().toISOString(),
+      rawData: stockDataList, // Include raw data for reference
+      timestamp: new Date().toISOString() 
     });
+
   } catch (error) {
     console.error('Analysis error:', error);
-
+    
+    let status = 500;
+    let message = 'An error occurred while processing your request.';
+    
     if (error.code === 'insufficient_quota') {
-      return res.status(429).json({
-        error: 'API quota exceeded',
-        message: 'OpenAI API quota exceeded. Please check your billing.',
-      });
+      status = 429;
+      message = 'OpenAI API quota exceeded. Please check your billing.';
     } else if (error.code === 'invalid_api_key') {
-      return res.status(401).json({
-        error: 'Invalid API key',
-        message: 'OpenAI API key is invalid or missing.',
-      });
-    } else if (error.code === 'rate_limit_exceeded') {
-      return res.status(429).json({
-        error: 'Rate limit exceeded',
-        message: 'Too many requests. Please try again later.',
-      });
+      status = 401;
+      message = 'OpenAI API key is invalid or missing.';
     }
-
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'An error occurred while processing your request.',
+    
+    res.status(status).json({ 
+      error: error.code || 'server_error', 
+      message 
     });
   }
 });
 
-// Fallback: serve index.html for all other routes (supports SPA routing)
+// Fallback route
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start the server
+// Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Stock Analysis API running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
