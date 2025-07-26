@@ -1,7 +1,6 @@
-// server.js - Simple Express backend for Stock Analysis
-
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const OpenAI = require('openai');
 require('dotenv').config();
 
@@ -10,14 +9,17 @@ const PORT = process.env.PORT || 3000;
 
 // Initialize OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // Store your API key in .env file
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Analysis prompt template
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Prompt template
 const ANALYSIS_PROMPT = `Please provide a comprehensive fundamental analysis for the following stock(s): {STOCKS}
 
 Include the following key areas in your analysis:
@@ -67,12 +69,12 @@ Include the following key areas in your analysis:
 
 Please provide specific numbers, recent data, and focus on the most recent quarterly and annual reports. Structure your response clearly with headers and bullet points for easy reading.`;
 
-// Routes
-
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Stock Analysis API is running' });
 });
 
+// POST endpoint for stock analysis
 app.post('/api/analyze', async (req, res) => {
   try {
     const { stocks } = req.body;
@@ -85,10 +87,10 @@ app.post('/api/analyze', async (req, res) => {
       });
     }
 
-    // Clean and validate stock symbols
+    // Sanitize stock symbols
     const cleanedStocks = stocks
-      .map(stock => stock.toString().trim().toUpperCase())
-      .filter(stock => stock.length > 0);
+      .map((s) => s.toString().trim().toUpperCase())
+      .filter((s) => s.length > 0);
 
     if (cleanedStocks.length === 0) {
       return res.status(400).json({
@@ -97,21 +99,22 @@ app.post('/api/analyze', async (req, res) => {
       });
     }
 
-    const stocksString = cleanedStocks.join(', ');
-    const prompt = ANALYSIS_PROMPT.replace('{STOCKS}', stocksString);
-    console.log(`Analyzing stocks: ${stocksString}`);
+    const stocksList = cleanedStocks.join(', ');
+    const prompt = ANALYSIS_PROMPT.replace('{STOCKS}', stocksList);
 
-    // Call OpenAI API
+    console.log(`Analyzing stocks: ${stocksList}`);
+
+    // Call OpenAI chat completion
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o', // Use correct model name per your OpenAI account
+      model: 'gpt-4o', // Replace with your available model name
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 4000,
       temperature: 0.7,
     });
 
     const analysis = completion.choices[0].message.content;
-    console.log(`Analysis completed for: ${stocksString}`);
 
+    // Respond with analysis
     res.json({
       success: true,
       stocks: cleanedStocks,
@@ -138,33 +141,19 @@ app.post('/api/analyze', async (req, res) => {
       });
     }
 
-    return res.status(500).json({
+    res.status(500).json({
       error: 'Internal server error',
       message: 'An error occurred while processing your request.',
     });
   }
 });
 
-// Error handling middleware (fallback)
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    error: 'Internal server error',
-    message: 'Something went wrong!',
-  });
+// Fallback: serve index.html for all other routes (supports SPA routing)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 404 handler for unmatched routes
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Not found',
-    message: 'API endpoint not found',
-  });
-});
-
+// Start the server
 app.listen(PORT, () => {
-  console.log(`🚀 Stock Analysis API is running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🚀 Stock Analysis API running on port ${PORT}`);
 });
-
-module.exports = app;
