@@ -12,120 +12,115 @@
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
-      background-color: #f9f9fb;
-      color: #222;
-      transition: background-color 0.3s, color 0.3s;
-    }
-    body.dark-mode {
-      background-color: #121212;
-      color: #eee;
+      background-color: #fefeff;
+      color: #1a1a1a;
     }
     header {
-      padding: 4rem 2rem 2rem;
+      padding: 5rem 2rem 3rem;
       text-align: center;
-      background: #fff;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    body.dark-mode header {
-      background: #1f1f1f;
-      border-color: #333;
+      background: linear-gradient(to bottom right, #f6f9fc, #dbe4f3);
+      border-bottom: 1px solid #e0e0e0;
     }
     header h1 {
-      font-size: 3rem;
-      margin-bottom: 0.5rem;
+      font-size: 3.4rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
     }
     header p {
-      color: #666;
-      font-size: 1.2rem;
-      max-width: 700px;
+      font-size: 1.3rem;
+      color: #333;
+      max-width: 600px;
       margin: 0 auto;
     }
     .input-section {
-      padding: 2rem;
-      max-width: 600px;
-      margin: 2rem auto;
-      text-align: center;
+      padding: 3rem 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
     .input-section input {
-      width: 100%;
-      padding: 0.8rem 1rem;
-      font-size: 1rem;
+      width: 360px;
+      padding: 1rem;
+      font-size: 1.1rem;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      margin-bottom: 1rem;
+      border-radius: 12px;
+      text-align: center;
     }
     .input-section button {
-      padding: 0.8rem 1.5rem;
+      padding: 1rem 2rem;
       font-size: 1rem;
-      background-color: #000;
+      background: #111827;
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
-      transition: background-color 0.2s ease-in-out;
+      transition: background 0.2s;
     }
     .input-section button:hover {
-      background-color: #333;
+      background: #374151;
     }
     .features {
-      background: #fff;
-      padding: 4rem 2rem;
+      padding: 5rem 2rem;
       display: grid;
       gap: 3rem;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       max-width: 1200px;
       margin: auto;
     }
-    body.dark-mode .features {
-      background: #1e1e1e;
-    }
     .feature {
-      padding: 1rem;
+      padding: 2rem;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s;
+    }
+    .feature:hover {
+      transform: translateY(-4px);
     }
     .feature h3 {
-      font-size: 1.4rem;
-      margin-bottom: 0.5rem;
+      font-size: 1.6rem;
+      margin-bottom: 0.8rem;
     }
     .feature p {
-      color: #555;
+      color: #444;
       font-size: 1rem;
-    }
-    body.dark-mode .feature p {
-      color: #bbb;
     }
     #result {
       max-width: 900px;
-      margin: 3rem auto;
+      margin: 4rem auto 2rem;
       padding: 1rem;
-      background-color: transparent;
     }
     canvas {
       margin-top: 2rem;
       max-width: 100%;
     }
-    .toggle-mode {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #eee;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      z-index: 1000;
+    .extra-sections {
+      background: #f3f4f6;
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+    .extra-sections h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .extra-sections p {
+      max-width: 700px;
+      margin: 0 auto;
+      font-size: 1.1rem;
+      color: #555;
     }
   </style>
 </head>
 <body>
-  <button class="toggle-mode" onclick="toggleDarkMode()">Toggle Dark Mode</button>
-
   <header>
     <h1>SmartStock Analyzer</h1>
     <p>Decode market insights and make smarter investment decisions with AI-powered analysis.</p>
   </header>
 
   <section class="input-section">
-    <input type="text" id="stockInput" placeholder="Enter one stock symbol e.g. AAPL"/>
+    <input type="text" id="stockInput" placeholder="Enter stock symbol e.g. AAPL" onkeydown="if(event.key==='Enter')analyzeStocks()"/>
     <button onclick="analyzeStocks()">Analyze</button>
   </section>
 
@@ -135,17 +130,26 @@
       <p>Get AI-curated summaries of top stocks so you spend less time digging and more time deciding.</p>
     </div>
     <div class="feature">
-      <h3>See the Story Behind the Stocks</h3>
-      <p>Turn boring numbers like EPS into colorful charts that tell you who’s winning the market race. 🏁📊</p>
+      <h3>Visual Narratives</h3>
+      <p>Turn financial data into visuals that help you understand stock trends at a glance.</p>
     </div>
     <div class="feature">
-      <h3>No Jargon Zone</h3>
-      <p>We ditch financial gobbledygook and speak your language — clear, crisp, and to the point.</p>
+      <h3>Clarity First</h3>
+      <p>No complex jargon — just straightforward insights for confident decision-making.</p>
+    </div>
+    <div class="feature">
+      <h3>Focused Analysis</h3>
+      <p>Analyze one stock at a time with simplicity and precision — just enter a symbol and go.</p>
     </div>
   </section>
 
   <div id="result"></div>
   <canvas id="chart"></canvas>
+
+  <section class="extra-sections">
+    <h2>Built for Curious Investors</h2>
+    <p>Whether you're new to stocks or a seasoned pro, SmartStock makes market data accessible, actionable, and even a bit fun 🎯</p>
+  </section>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -155,44 +159,45 @@
 
       const stocks = [input];
 
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stocks })
-      });
-
-      const data = await response.json();
-      document.getElementById('result').innerHTML = data.analysis;
-
-      if (data.chartData) {
-        const ctx = document.getElementById('chart').getContext('2d');
-        new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: data.chartData.labels,
-            datasets: [{
-              label: 'EPS',
-              data: data.chartData.values,
-              backgroundColor: 'rgba(54, 162, 235, 0.7)',
-              borderRadius: 8
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { display: false },
-              tooltip: { enabled: true }
-            },
-            scales: {
-              y: { beginAtZero: true }
-            }
-          }
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stocks })
         });
-      }
-    }
 
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
+        const data = await response.json();
+        document.getElementById('result').innerHTML = data.analysis || '<p>No analysis available.</p>';
+
+        if (data.chartData) {
+          const ctx = document.getElementById('chart').getContext('2d');
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: data.chartData.labels,
+              datasets: [{
+                label: 'EPS',
+                data: data.chartData.values,
+                backgroundColor: 'rgba(0, 122, 255, 0.7)',
+                borderRadius: 8
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true }
+              },
+              scales: {
+                y: { beginAtZero: true }
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error analyzing stock:', error);
+        alert('There was an error analyzing the stock. Please try again later.');
+      }
     }
   </script>
 </body>
