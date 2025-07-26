@@ -2,297 +2,198 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Stock Analyzer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartStock Analyzer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
   <style>
-    /* Fonts & Base */
-    @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap');
-
-    :root {
-      --color-bg: #121421;
-      --color-primary: #4ade80; /* Soft bright green */
-      --color-primary-hover: #22c55e;
-      --color-text-main: #e0e0e0;
-      --color-text-muted: #a0a0a0;
-      --color-error: #ef4444; /* red-500 */
-      --color-input-bg: #1e2235;
-      --color-card-bg: #1c1f35;
-      --color-border: #2a2f4a;
-      --shadow-dark: 0 8px 24px rgb(0 0 0 / 0.3);
-      --transition-speed: 0.3s;
-    }
-
     * {
       box-sizing: border-box;
     }
-
     body {
       margin: 0;
-      background: var(--color-bg);
-      color: var(--color-text-main);
-      font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-        Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      padding: 3rem 1rem;
-      user-select: none;
+      font-family: 'Inter', sans-serif;
+      background-color: #f9f9fb;
+      color: #222;
+      transition: background-color 0.3s, color 0.3s;
     }
-
-    main {
-      background: var(--color-card-bg);
-      border-radius: 16px;
-      width: 100%;
-      max-width: 600px;
-      box-shadow: var(--shadow-dark);
-      padding: 2.5rem 3rem;
-      display: flex;
-      flex-direction: column;
+    body.dark-mode {
+      background-color: #121212;
+      color: #eee;
     }
-
-    h1 {
-      font-weight: 700;
-      font-size: 2.5rem;
-      margin: 0 0 1.5rem 0;
-      letter-spacing: 1.5px;
-      color: var(--color-primary);
+    header {
+      padding: 4rem 2rem 2rem;
       text-align: center;
-      text-transform: uppercase;
-      text-shadow: 0 0 6px var(--color-primary);
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
     }
-
-    label {
-      font-weight: 500;
-      font-size: 1.1rem;
-      color: var(--color-text-muted);
-      letter-spacing: 0.02em;
-      margin-bottom: 0.6rem;
-      display: block;
+    body.dark-mode header {
+      background: #1f1f1f;
+      border-color: #333;
     }
-
-    input[type="text"] {
+    header h1 {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    header p {
+      color: #666;
+      font-size: 1.2rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .input-section {
+      padding: 2rem;
+      max-width: 600px;
+      margin: 2rem auto;
+      text-align: center;
+    }
+    .input-section input {
       width: 100%;
-      padding: 14px 18px;
-      font-size: 1.1rem;
-      border-radius: 12px;
-      border: 1.8px solid var(--color-border);
-      background: var(--color-input-bg);
-      color: var(--color-text-main);
-      transition: border-color var(--transition-speed);
-      box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.3);
-      font-weight: 500;
-    }
-
-    input[type="text"]::placeholder {
-      color: var(--color-text-muted);
-      font-weight: 400;
-    }
-
-    input[type="text"]:focus {
-      outline: none;
-      border-color: var(--color-primary);
-      box-shadow: 0 0 8px var(--color-primary);
-      background: #22263b;
-    }
-
-    form {
-      position: relative;
+      padding: 0.8rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
       margin-bottom: 1rem;
     }
-
-    button {
-      margin-top: 0.2rem;
-      background: linear-gradient(135deg, #34d399 0%, #22c55e 100%);
-      border: none;
-      border-radius: 14px;
-      padding: 14px 30px;
+    .input-section button {
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      background-color: #000;
       color: white;
-      font-weight: 700;
-      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
-      box-shadow:
-        0 4px 10px rgb(34 197 94 / 0.6),
-        inset 0 -2px 4px rgb(18 157 54 / 0.8);
-      transition: background var(--transition-speed), box-shadow var(--transition-speed), transform 0.15s ease-in-out;
-      user-select: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6rem;
+      transition: background-color 0.2s ease-in-out;
     }
-
-    button:disabled {
-      background: #444a68;
-      box-shadow: none;
-      cursor: not-allowed;
-      transform: none;
-      color: #888eaa;
+    .input-section button:hover {
+      background-color: #333;
     }
-
-    button:not(:disabled):hover {
-      background: linear-gradient(135deg, #22c55e 0%, #10b35a 100%);
-      box-shadow:
-        0 6px 14px rgb(16 179 90 / 0.8),
-        inset 0 -3px 7px rgb(14 131 53 / 0.9);
-      transform: translateY(-2px);
+    .features {
+      background: #fff;
+      padding: 4rem 2rem;
+      display: grid;
+      gap: 3rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      max-width: 1200px;
+      margin: auto;
     }
-
-    #loading-spinner {
+    body.dark-mode .features {
+      background: #1e1e1e;
+    }
+    .feature {
+      padding: 1rem;
+    }
+    .feature h3 {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+    .feature p {
+      color: #555;
       font-size: 1rem;
-      color: var(--color-primary);
-      user-select: none;
-      animation: pulse 2s infinite ease-in-out;
-      display: none;
     }
-
-    @keyframes pulse {
-      0%, 100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.5;
-      }
+    body.dark-mode .feature p {
+      color: #bbb;
     }
-
-    #error-message {
-      margin-top: 1rem;
-      font-weight: 600;
-      color: var(--color-error);
-      text-align: center;
-      letter-spacing: 0.05em;
-      text-shadow: 0 0 4px var(--color-error);
-      min-height: 1.4rem;
-      user-select: text;
-    }
-
     #result {
-      margin-top: 1.8rem;
-      padding: 1.5rem 2rem;
-      background: linear-gradient(145deg, #23274e, #1b1f3e);
-      border-radius: 16px;
-      font-family: 'Fira Mono', monospace, monospace;
-      font-size: 1rem;
-      line-height: 1.5;
-      color: var(--color-primary);
-      white-space: pre-wrap;
-      max-height: 420px;
-      overflow-y: auto;
-      box-shadow:
-        inset 0 0 12px rgb(74 222 128 / 0.6);
-      user-select: text;
-      border: 1.5px solid rgba(74, 222, 128, 0.3);
-      scrollbar-width: thin;
-      scrollbar-color: var(--color-primary) transparent;
-    }
-
-    /* Scrollbar for Webkit */
-    #result::-webkit-scrollbar {
-      width: 8px;
+      max-width: 900px;
+      margin: 3rem auto;
+      padding: 1rem;
       background-color: transparent;
     }
-    #result::-webkit-scrollbar-thumb {
-      background-color: var(--color-primary);
-      border-radius: 10px;
+    canvas {
+      margin-top: 2rem;
+      max-width: 100%;
     }
-
-    /* Responsive tweaks */
-    @media (max-width: 480px) {
-      main {
-        padding: 2rem 1.5rem;
-        max-width: 100%;
-      }
-
-      h1 {
-        font-size: 2.2rem;
-      }
-
-      button {
-        width: 100%;
-        justify-content: center;
-      }
+    .toggle-mode {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #eee;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 1000;
     }
   </style>
 </head>
 <body>
-  <main>
-    <h1>Stock Analyzer</h1>
-    <form id="stock-form" novalidate>
-      <label for="stocks">Enter Stock Symbols (comma separated):</label>
-      <input
-        type="text"
-        id="stocks"
-        name="stocks"
-        placeholder="e.g. AAPL, TSLA, GOOGL"
-        autocomplete="off"
-        required
-      />
-      <button type="submit">
-        Analyze
-        <span id="loading-spinner">⏳</span>
-      </button>
-    </form>
+  <button class="toggle-mode" onclick="toggleDarkMode()">Toggle Dark Mode</button>
 
-    <div id="error-message"></div>
-    <pre id="result"></pre>
-  </main>
+  <header>
+    <h1>SmartStock Analyzer</h1>
+    <p>Decode market insights and make smarter investment decisions with AI-powered analysis.</p>
+  </header>
 
+  <section class="input-section">
+    <input type="text" id="stockInput" placeholder="Enter one stock symbol e.g. AAPL"/>
+    <button onclick="analyzeStocks()">Analyze</button>
+  </section>
+
+  <section class="features">
+    <div class="feature">
+      <h3>Smart Insights</h3>
+      <p>Get AI-curated summaries of top stocks so you spend less time digging and more time deciding.</p>
+    </div>
+    <div class="feature">
+      <h3>See the Story Behind the Stocks</h3>
+      <p>Turn boring numbers like EPS into colorful charts that tell you who’s winning the market race. 🏁📊</p>
+    </div>
+    <div class="feature">
+      <h3>No Jargon Zone</h3>
+      <p>We ditch financial gobbledygook and speak your language — clear, crisp, and to the point.</p>
+    </div>
+  </section>
+
+  <div id="result"></div>
+  <canvas id="chart"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    const form = document.getElementById('stock-form');
-    const resultEl = document.getElementById('result');
-    const errorEl = document.getElementById('error-message');
-    const loadingSpinner = document.getElementById('loading-spinner');
-    const analyzeButton = form.querySelector('button');
+    async function analyzeStocks() {
+      const input = document.getElementById('stockInput').value.trim();
+      if (!input) return alert('Please enter a stock symbol.');
 
-    const API_URL = '/api/analyze';
+      const stocks = [input];
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      errorEl.textContent = '';
-      resultEl.textContent = '';
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stocks })
+      });
 
-      const stocksInput = document.getElementById('stocks').value;
-      const stocks = stocksInput
-        .split(',')
-        .map(s => s.trim().toUpperCase())
-        .filter(Boolean);
+      const data = await response.json();
+      document.getElementById('result').innerHTML = data.analysis;
 
-      // Basic validation for stock symbols (letters, numbers, dots, dashes)
-      const invalidSymbols = stocks.filter(s => !/^[A-Z0-9.-]+$/.test(s));
-      if (invalidSymbols.length > 0) {
-        errorEl.textContent = `Invalid stock symbols: ${invalidSymbols.join(', ')}`;
-        return;
-      }
-
-      if (stocks.length === 0) {
-        errorEl.textContent = 'Please enter at least one valid stock symbol.';
-        return;
-      }
-
-      loadingSpinner.style.display = 'inline';
-      analyzeButton.disabled = true;
-
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ stocks }),
+      if (data.chartData) {
+        const ctx = document.getElementById('chart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: data.chartData.labels,
+            datasets: [{
+              label: 'EPS',
+              data: data.chartData.values,
+              backgroundColor: 'rgba(54, 162, 235, 0.7)',
+              borderRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: true }
+            },
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
         });
-
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.message || 'Unknown error occurred');
-        }
-
-        const data = await response.json();
-        resultEl.textContent = data.analysis;
-      } catch (error) {
-        errorEl.textContent = `Error: ${error.message}`;
-      } finally {
-        loadingSpinner.style.display = 'none';
-        analyzeButton.disabled = false;
       }
-    });
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
   </script>
 </body>
 </html>
