@@ -225,7 +225,7 @@ ${stock.earningsHistory.map(item => `  ${item.year}: ${item.value}`).join('\n')}
       message = 'OpenAI API quota exceeded. Please check your billing.';
     } else if (error.code === 'invalid_api_key') {
       status = 401;
-      message = 'OpenAI API key is invalid or missing.';
+      message = 'OpenAI API key is invalid or missing ';
     }
 
     res.status(status).json({ error: error.code || 'server_error', message });
