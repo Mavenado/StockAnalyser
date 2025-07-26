@@ -21,22 +21,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Prompt template
 const ANALYSIS_PROMPT = ` Please provide a comprehensive fundamental analysis for the following stock(s): {STOCKS}
-
 ## Objective
 Conduct a thorough analysis of the stock, combining qualitative and quantitative approaches to provide a well-rounded investment recommendation.
 
 ## Source & Outline of Analysis
-Take financial statements and other data points on the company from Screener.in on the said company!! 
-Adhere STRICTLY to the sample output outline. Can add charts, and visualisations.
+Take financial statements and other data points on the company from Screener.in on the said company!! Adhere STRICTLY to the sample output outline. Can add charts, and visualisations.
 
 ## Instructions
+
+{STOCKS} - Equity Analysis Report
+
+By “Trading Maverick”
 
 ### 1. Company Overview
 - Provide a brief introduction to the company, including its name, sector, and primary business activities.
 - Mention any recent significant events or changes in the company's structure or operations.
 - Investment Recommendation (Quick reference from & based on Step 8 below)
-
-
 Recommendation: BUY/SELL/HOLD
 Target Price: ₹x (y% upside/downside)
 Investment Horizon:  months
@@ -45,7 +45,7 @@ Investment Horizon:  months
 ### 2. Quantitative Analysis
 Use the provided financial data to analyze the following metrics. For each subtopic, provide:
 The current value and historical data for the past 5 years (where available)
-A clear trend analysis (e.g., improving [CAGR], declining [CAGR] , stable)
+A clear trend analysis (e.g., improving, declining, stable)
 Analytical commentary on the reasons behind the observed trends
 Key takeaways and their implications for the company's financial health and future prospects
 a) Market Valuation and Price Metrics:
@@ -95,7 +95,7 @@ c) Growth Strategy:
 
 ### 4. Shareholding Pattern Analysis
 Analyze the company's shareholding pattern, focusing on:
-- Promoter holding and any recent changes and pledged ratio
+- Promoter holding and any recent changes
 - Institutional investor (FII and DII) holdings
 - Public shareholding trends
 
@@ -113,10 +113,9 @@ Synthesize the qualitative and quantitative analyses to form a coherent investme
 ### 7. Conclusion
 Summarize the key points of your analysis and restate your recommendation.
 
-## Output Type
+### Output Type
 
-Give the output in a professional view with the following features:
-
+Give the output in a HTML version of the equity research report by the author. Design as a professional with the following features:
 Professional Design Elements:
 Clean, corporate color scheme with professional typography
 Branded header with company and report information
@@ -135,6 +134,7 @@ Important figures and recommendations emphasized
 Consistent formatting throughout
 Footer with disclaimer and publication information
 
+
 ## Important Notes
 - Remember that for Indian markets, the financial year starts from April 1st and ends on March 31st. For example, FY24 would be from April 1, 2023, to March 31, 2024.
 - For all Balance Sheet, Income Statement, and Cash flow statement data and metrics, refer to FY24 as the latest available annual period. For market metrics and valuation data, refer to the latest available data from the credible sources noted above.
@@ -150,6 +150,7 @@ Footer with disclaimer and publication information
 - Keep the lookback period as the last 5 fiscal years.
 - In the Quantitative Analysis section, ensure that each subtopic includes a clear trend analysis, commentary, and key takeaways to provide a comprehensive understanding of the company's financial performance and position.
 - Refer to the reference Output below. The structure, framework, style, chronology of the prompt output should be as per the reference, for any stock being analysed.
+
 `;
 
 // Health check endpoint
