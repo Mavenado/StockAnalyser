@@ -174,7 +174,7 @@ app.use('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Stock Analysis API running on port ${PORT}`);
+  console.log(`🚀 Stock Analysis API is running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
 });
 
