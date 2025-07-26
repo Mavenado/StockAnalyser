@@ -111,6 +111,22 @@
       font-size: 1.1rem;
       color: #555;
     }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 5px solid #ccc;
+      border-top: 5px solid #007aff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite, blink 1s infinite;
+      margin: auto;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
   </style>
 </head>
 <body>
@@ -121,7 +137,9 @@
 
   <section class="input-section">
     <input type="text" id="stockInput" placeholder="Enter stock symbol e.g. AAPL" onkeydown="if(event.key==='Enter')analyzeStocks()"/>
-    <button onclick="analyzeStocks()">Analyze</button>
+    <div id="analyzeWrapper">
+      <button id="analyzeBtn" onclick="analyzeStocks()">Analyze</button>
+    </div>
   </section>
 
   <div id="result"></div>
@@ -129,20 +147,32 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
+    function showLoaderInButton() {
+      const analyzeWrapper = document.getElementById('analyzeWrapper');
+      analyzeWrapper.innerHTML = `<div class="spinner" style="height:48px;width:48px;"></div>`;
+    }
+
+    function restoreAnalyzeButton() {
+      const analyzeWrapper = document.getElementById('analyzeWrapper');
+      analyzeWrapper.innerHTML = `<button id="analyzeBtn" onclick="analyzeStocks()">Analyze</button>`;
+    }
+
     async function analyzeStocks() {
       const input = document.getElementById('stockInput').value.trim();
       if (!input) return alert('Please enter a stock symbol.');
 
-      const stocks = [input];
+      document.getElementById('result').innerHTML = '';
+      showLoaderInButton();
 
       try {
         const response = await fetch('/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ stocks })
+          body: JSON.stringify({ stocks: [input] })
         });
 
         const data = await response.json();
+        restoreAnalyzeButton();
         document.getElementById('result').innerHTML = data.analysis || '<p>No analysis available.</p>';
 
         if (data.chartData) {
@@ -173,6 +203,7 @@
       } catch (error) {
         console.error('Error analyzing stock:', error);
         alert('There was an error analyzing the stock. Please try again later.');
+        restoreAnalyzeButton();
       }
     }
   </script>
