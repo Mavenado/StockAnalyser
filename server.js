@@ -114,7 +114,9 @@ Summarize the key points of your analysis and restate your recommendation.
 
 ## Output Type
 
-Give the output in a HTML version of the equity research report by the author. Design as a professional, downloadable PDF-ready document with the following features:
+Give the output in a professional view with the following features:
+
+
 Professional Design Elements:
 Clean, corporate color scheme with professional typography
 Branded header with company and report information
