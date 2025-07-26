@@ -67,9 +67,8 @@
     const errorEl = document.getElementById('error-message');
     const loadingSpinner = document.getElementById('loading-spinner');
 
-    // Change this URL to your deployed backend API URL in production.
-    // For local testing keep as 'http://localhost:3000/api/analyze'
-    const API_URL = 'http://localhost:3000/api/analyze';
+    // Use relative API URL since frontend & backend are served together
+    const API_URL = '/api/analyze';
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
