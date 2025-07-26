@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stock Analyzer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 1rem;
+      background: #fafafa;
+    }
+    label {
+      font-weight: bold;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    #result {
+      white-space: pre-wrap;
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      max-height: 500px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+    }
+    #error-message {
+      color: red;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    #loading-spinner {
+      display: none;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Stock Analyzer</h1>
+  <form id="stock-form">
+    <label for="stocks">Enter Stock Symbols (comma separated):</label><br />
+    <input type="text" id="stocks" name="stocks" placeholder="e.g. AAPL, TSLA, GOOGL" required />
+    <button type="submit">Analyze</button>
+    <span id="loading-spinner">⏳ Analyzing...</span>
+  </form>
+
+  <div id="error-message"></div>
+  <pre id="result"></pre>
+
+  <script>
+    const form = document.getElementById('stock-form');
+    const resultEl = document.getElementById('result');
+    const errorEl = document.getElementById('error-message');
+    const loadingSpinner = document.getElementById('loading-spinner');
+
+    // Use relative API URL since frontend & backend are served together
+    const API_URL = '/api/analyze';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.textContent = '';
+      resultEl.textContent = '';
+
+      const stocksInput = document.getElementById('stocks').value;
+      const stocks = stocksInput
+        .split(',')
+        .map(s => s.trim().toUpperCase())
+        .filter(Boolean);
+
+      // Basic validation: only uppercase letters, numbers, dots, and dashes allowed
+      const invalidSymbols = stocks.filter(s => !/^[A-Z0-9.-]+$/.test(s));
+      if (invalidSymbols.length > 0) {
+        errorEl.textContent = `Invalid stock symbols: ${invalidSymbols.join(', ')}`;
+        return;
+      }
+
+      if (stocks.length === 0) {
+        errorEl.textContent = 'Please enter at least one valid stock symbol.';
+        return;
+      }
+
+      loadingSpinner.style.display = 'inline';
+      form.querySelector('button').disabled = true;
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ stocks }),
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.message || 'Unknown error occurred');
+        }
+
+        const data = await response.json();
+
+        // Display the analysis text preserving line breaks
+        resultEl.textContent = data.analysis;
+
+      } catch (err) {
+        errorEl.textContent = `Error: ${err.message}`;
+      } finally {
+        loadingSpinner.style.display = 'none';
+        form.querySelector('button').disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
