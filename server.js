@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const axios = require('axios');
+const axios = require('axios');               // Ensure axios is imported
 const OpenAI = require('openai');
 require('dotenv').config();
 
@@ -90,7 +90,7 @@ async function fetchYahooFinanceData(stockSymbol) {
     const response = await axios.get(url);
     const data = response.data.quoteSummary.result[0];
     
-    // Process financial history
+    // Process financial history helper
     const processHistory = (history, field) => {
       return history?.map(item => ({
         year: item.endDate?.fmt || 'N/A',
@@ -161,21 +161,21 @@ app.post('/api/analyze', async (req, res) => {
       });
     }
 
-    // Process stock symbols
+    // Normalize and cleanup stock symbols
     const cleanedStocks = stocks.map(s => s.toString().trim().toUpperCase())
                               .filter(s => s.length > 0);
 
-    // Fetch data for all stocks
+    // Fetch data for all stocks concurrently
     const stockDataList = await Promise.all(
       cleanedStocks.map(fetchYahooFinanceData)
     );
 
-    // Prepare financial data text
-    const financialDataText = stockDataList.map((stock, index) => {
-      if (!stock) return `Stock: ${cleanedStocks[index]}\nData not available`;
+    // Prepare financial data text to append to prompt
+    const financialDataText = stockDataList.map((stock, idx) => {
+      if (!stock) return `Stock: ${cleanedStocks[idx]}\nData not available`;
       
       return `
-Stock: ${stock.name} (${cleanedStocks[index]})
+Stock: ${stock.name} (${cleanedStocks[idx]})
 Price: ₹${stock.price}
 Market Cap: ${stock.marketCap}
 P/E Ratio: ${stock.peRatio}
@@ -191,12 +191,12 @@ ${stock.earningsHistory.map(item => `  ${item.year}: ${item.value}`).join('\n')}
       `;
     }).join('\n\n');
 
-    // Generate prompt
+    // Generate prompt with stock list and financial data appended
     const stocksList = cleanedStocks.join(', ');
     const prompt = ANALYSIS_PROMPT.replace(/{STOCKS}/g, stocksList)
                       .concat(`\n\n## Financial Data\n${financialDataText}`);
 
-    // Get AI analysis
+    // Call OpenAI for GPT-4 analysis
     const completion = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [{ role: 'user', content: prompt }],
@@ -210,16 +210,16 @@ ${stock.earningsHistory.map(item => `  ${item.year}: ${item.value}`).join('\n')}
       success: true, 
       stocks: cleanedStocks, 
       analysis,
-      rawData: stockDataList, // Include raw data for reference
+      rawData: stockDataList,
       timestamp: new Date().toISOString() 
     });
 
   } catch (error) {
     console.error('Analysis error:', error);
-    
+
     let status = 500;
     let message = 'An error occurred while processing your request.';
-    
+
     if (error.code === 'insufficient_quota') {
       status = 429;
       message = 'OpenAI API quota exceeded. Please check your billing.';
@@ -227,15 +227,12 @@ ${stock.earningsHistory.map(item => `  ${item.year}: ${item.value}`).join('\n')}
       status = 401;
       message = 'OpenAI API key is invalid or missing.';
     }
-    
-    res.status(status).json({ 
-      error: error.code || 'server_error', 
-      message 
-    });
+
+    res.status(status).json({ error: error.code || 'server_error', message });
   }
 });
 
-// Fallback route
+// Fallback route for SPA
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
